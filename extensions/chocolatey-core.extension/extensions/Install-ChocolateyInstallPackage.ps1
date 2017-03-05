@@ -44,15 +44,22 @@ $packageArgs = @{
 
 Install-ChocolateyInstallPackageEx @packageArgs
 #>
+$have64BitFileParam = Get-Item function:\Install-ChocolateyInstallPackage | ? { $_.Parameters.ContainsKey('file64') }
+if ($have64BitFileParam) {
+  return
+}
 
-function Install-ChocolateyInstallPackageEx {
+Write-Debug "Loading Install-ChocolateyInstallPackage override"
+Rename-Item function:Install-ChocolateyInstallPackage Install-ChocolateyInstallPackageOriginal
+
+function Install-ChocolateyInstallPackage {
   param(
     [parameter(Mandatory=$true, Position=0)][string] $packageName,
     [parameter(Mandatory=$false, Position=1)]
     [alias("installerType","installType")][string] $fileType = 'exe',
     [parameter(Mandatory=$false, Position=2)][string[]] $silentArgs = '',
     [alias("fileFullPath")][parameter(Mandatory=$false, Position=3)][string] $file,
-    [alias("fileFullPath64","file64Bit")][Parameter(Mandatory=$false, Position=4)][string] $file64,
+    [alias("fileFullPath64")][Parameter(Mandatory=$false, Position=4)][string] $file64,
     [parameter(Mandatory=$false)] $validExitCodes = @(0),
     [parameter(Mandatory=$false)]
     [alias("useOnlyPackageSilentArgs")][switch] $useOnlyPackageSilentArguments = $false,
@@ -90,5 +97,8 @@ function Install-ChocolateyInstallPackageEx {
     ignoredArguments = $ignoredArguments
   }
 
-  Install-ChocolateyInstallPackage @packageArgs
+  Install-ChocolateyInstallPackageOriginal @packageArgs
 }
+
+# We need to force the export of Install-ChocolateyInstall function
+Export-ModuleMember -Function Install-ChocolateyInstallPackage
