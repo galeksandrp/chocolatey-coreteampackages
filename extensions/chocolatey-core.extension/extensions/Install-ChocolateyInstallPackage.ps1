@@ -1,3 +1,12 @@
+. "$env:ChocolateyInstall\helpers\functions\Install-ChocolateyInstallPackage.ps1"
+$installPackageFunc = Get-Item Function:\Install-ChocolateyInstallPackage | ? { $_.Parameters.ContainsKey('file64') }
+if ($installPackageFunc) {
+  return
+}
+
+Write-Debug "Loading Install-ChocolateyInstallPackage override"
+Rename-Item Function:Install-ChocolateyInstallPackage Install-ChocolateyInstallPackageOriginal
+
 <#
 .SYNOPSIS
 Simple wrapper to support easier selection of 32bit and 64bit install file.
@@ -44,14 +53,6 @@ $packageArgs = @{
 
 Install-ChocolateyInstallPackageEx @packageArgs
 #>
-$have64BitFileParam = Get-Item function:\Install-ChocolateyInstallPackage | ? { $_.Parameters.ContainsKey('file64') }
-if ($have64BitFileParam) {
-  return
-}
-
-Write-Debug "Loading Install-ChocolateyInstallPackage override"
-Rename-Item function:Install-ChocolateyInstallPackage Install-ChocolateyInstallPackageOriginal
-
 function Install-ChocolateyInstallPackage {
   param(
     [parameter(Mandatory=$true, Position=0)][string] $packageName,
