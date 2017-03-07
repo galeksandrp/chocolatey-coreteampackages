@@ -66,27 +66,21 @@ function Install-ChocolateyInstallPackage {
     [alias("useOnlyPackageSilentArgs")][switch] $useOnlyPackageSilentArguments = $false,
     [parameter(ValueFromRemainingArguments = $true)][Object[]] $ignoredArguments
   )
-  if (!$file -and !$file64) {
-    throw "No file path have been specified."
-  }
-
-  $fileFullPath = $null
-
-  if ((Get-ProcessorBits 32) -or $env:chocolateyForceX86 -eq "$true") {
-    if (!$file) {
-      throw "32-bit installation is not supported for $packageName"
-    } elseif($file64) {
-      Write-Host "Installing $packageName 32-bit"
-    }
-    $fileFullPath = $file
-  }else {
-    if (!$file64) {
-      $fileFullPath = $file
-    } else {
-      Write-Host "Installing $packageName 64-bit"
-    }
+  $bitnessMessage = ''
+  $fileFullPath = $file
+  if ((Get-ProcessorBits 32) -or $env:ChocolateyForceX86 -eq 'true') {
+    if (!$file) { throw "32-bit installation is not supported for $packageName" }
+    if ($file64) { $bitnessMessage = '32-bit ' }
+  } elseif( $file64) {
     $fileFullPath = $file64
+    $bitnessMessage = '64-bit '
   }
+
+  if ($fileFullPath -eq '' -or $fileFullPath -eq $null) {
+    throw "Package parameters incorrect, either File or File64 must be specified."
+  }
+
+  Write-Host "Installing $bitnessMessage$packageName..."
 
   $packageArgs = @{
     packageName    = $packageName
