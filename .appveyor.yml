@@ -4,12 +4,9 @@ version: '{build}'
 pull_requests:
   do_not_increment_build_number: true
 max_jobs: 1
-image: WMF 5
+image: Visual Studio 2017
 # History plugin requires complete log
 #clone_depth: 5
-branches:
-  only:
-  - master
 #build:
 #  verbosity: minimal
 
@@ -106,7 +103,7 @@ build_script:
 
                     if (!$package_dir) { Write-Warning "Can't find package '$package'"; continue }
                     pushd $package_dir
-                      if (Test-Path update.ps1 -ea 0) { ./update.ps1 }
+                      if (Test-Path update.ps1 -ea 0) { $au_Force = $true; ./update.ps1 }
                       choco pack; Push-Package -All;
                     popd
                 }
@@ -142,3 +139,6 @@ notifications:
 
 cache:
   - '%nupkg_cache_path% -> .appveyor.yml'
+
+artifacts:
+- path: '**\*.nupkg'
